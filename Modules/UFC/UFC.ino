@@ -9,12 +9,20 @@
   (Uno, Pro Mini, many others).
  */
 
-void setup() {
-  // put your setup code here, to run once:
+//Definitions
+#define DCSBIOS_IRQ_SERIAL
+#define OnBoardLED 13
 
+//Includes
+#include "DcsBios.h"
+
+//Registry
+DcsBios::LED masterCautionLt(0x7408, 0x0200, OnBoardLED);
+
+void setup() {
+  DcsBios::setup(); 
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-
+  DcsBios::loop();
 }
