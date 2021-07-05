@@ -12,14 +12,34 @@
 //Definitions
 #define DCSBIOS_IRQ_SERIAL
 #define OnBoardLED 13
-#define MasterCautionReset 2
+
+//DCS Bios Switch2Pos
+#define UFC_COMM1_PULL 1
+#define UFC_COMM2_PULL 0
+
+//DCS Bios Switch3Pos
+
+//DCS Bios RotaryEncoders
+
+//DCS Bios Potentiometers
+
+//DCS Bios LED
 
 //Includes
 #include "DcsBios.h"
 
 //DCS Bios Register
-DcsBios::LED masterCautionLt(0x7408, 0x0200, OnBoardLED);
-DcsBios::Switch2Pos masterCautionResetSw("MASTER_CAUTION_RESET_SW", MasterCautionReset);
+//Switch2Pos
+DcsBios::Switch2Pos ufcComm1Pull("UFC_COMM1_PULL", UFC_COMM1_PULL);
+DcsBios::Switch2Pos ufcComm2Pull("UFC_COMM2_PULL", UFC_COMM2_PULL);
+
+//Switch3Pos
+
+//RotaryEncoder
+
+//Potentiometer
+
+//LED
 
 void setup() {
   DcsBios::setup();
@@ -36,9 +56,43 @@ void loop() {
 }
 
 //Interrupt Services
-ISR (PCINT0_vect) {
+ISR (PCINT0_vect) 
+{
+  /*
+   * ---------- THIS CODE IS FAULTLY ----------  
+   * NOTE Maybe switch the Debounce inside the Rising/Falling Edge detection???
   //for PCINT[0-7] 
- }
+  static unsigned long last_interrupt_time = 0;
+  unsigned long interrupt_time = millis();
+  // If interrupts come faster than 200ms, assume it's a bounce and ignore
+  if (interrupt_time - last_interrupt_time > 100) 
+  {
+    if(!digitalRead(C1) && C1_state)
+    {
+      C1_state = LOW;
+      Serial.println("C1 Falling");
+    }
+    else if(digitalRead(C1) && !C1_state)
+    {
+      C1_state = HIGH;
+      Serial.println("C1 Rising");
+    }
+
+    if(!digitalRead(C2) && C2_state)
+    {
+      C2_state = LOW;
+      Serial.println("C2 Falling");
+    }
+    else if(digitalRead(C2) && !C2_state)
+    {
+      C2_state = HIGH;
+      Serial.println("C2 Rising");
+    }
+  }
+  last_interrupt_time = interrupt_time;
+  Serial.println(last_interrupt_time);
+  */
+}
  
 ISR (PCINT1_vect) {
   //for PCINT[8-15] Note PCINT[11-15] not exposed physically
