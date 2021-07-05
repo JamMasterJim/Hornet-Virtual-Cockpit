@@ -16,60 +16,34 @@
 
 //Includes
 #include "DcsBios.h"
-#include <Keypad.h>
 
-//Registry
+//DCS Bios Register
 DcsBios::LED masterCautionLt(0x7408, 0x0200, OnBoardLED);
 DcsBios::Switch2Pos masterCautionResetSw("MASTER_CAUTION_RESET_SW", MasterCautionReset);
-DcsBios::PotentiometerEWMA<5, 128, 5> ufcBrt("UFC_BRT", A0);
-
-//Create the keypad Matrix for button inputs
-const byte ROWS = 8; // eight rows
-const byte COLS = 8; // eight columns
-// Define the Keymap
-char keys[ROWS][COLS] = {
-  {'1','2','3','\0','\0','\0','\0','\0'},
-  {'4','5','6','\0','\0','\0','\0','\0'},
-  {'7','8','9','\0','\0','\0','\0','\0'},
-  {'C','0','E','\0','\0','\0','\0','\0'},
-  {'\0','\0','\0','\0','\0','\0','\0','\0'},
-  {'\0','\0','\0','\0','\0','\0','\0','\0'},
-  {'\0','\0','\0','\0','\0','\0','\0','\0'},
-  {'\0','\0','\0','\0','\0','\0','\0','\0'}
-};
-
-// Connect keypad to these Arduino pins.
-//byte rowPins[ROWS] = { 37, 36, 35, 34, 33, 32, 31, 30 };
-//byte colPins[COLS] = { 22, 23, 24, 25, 26, 27, 28, 29 }; 
-
-// Create the Keypad
-//Keypad kpd = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
 
 void setup() {
-  DcsBios::setup(); 
+  DcsBios::setup();
+  
+  //Setup the interups 
+  PCICR |= B00000111;      //Bit0 = 1 -> "PCIE0" enabeled, Bit1 = 1 -> "PCIE1" enabeled, Bit2 = 1 -> "PCIE2" enabeled
+  PCMSK0 |= B00000000;      //Nothin will trigger Interupt
+  PCMSK1 |= B00000000;      //Nothin will trigger Interupt
+  PCMSK2 |= B00000000;      //Nothin will trigger Interupt
 }
 
 void loop() {
   DcsBios::loop();
-  //keypad();
 }
-/*
-void keypad(){
-  char key = kpd.getKey();
-  if(key)  // Check for a valid key.
-  {
-    switch (key)
-    {
-      case '*':
-        digitalWrite(OnBoardLED, LOW);
-        break;
-      case '#':
-        digitalWrite(OnBoardLED, HIGH);
-        break;
-      default:
-        delay(10);
-        //Serial.println(key);
-    }
-  }
+
+//Interrupt Services
+ISR (PCINT0_vect) {
+  //for PCINT[0-7] 
  }
- */
+ 
+ISR (PCINT1_vect) {
+  //for PCINT[8-15] Note PCINT[11-15] not exposed physically
+ }
+ 
+ISR (PCINT2_vect) {
+  //for PCINT[16-23] 
+ }
