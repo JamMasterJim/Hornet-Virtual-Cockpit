@@ -12,6 +12,7 @@
 //Definitions
 #define DCSBIOS_IRQ_SERIAL
 #define OnBoardLED 13
+#define MasterCautionReset 2
 
 //Includes
 #include "DcsBios.h"
@@ -19,6 +20,8 @@
 
 //Registry
 DcsBios::LED masterCautionLt(0x7408, 0x0200, OnBoardLED);
+DcsBios::Switch2Pos masterCautionResetSw("MASTER_CAUTION_RESET_SW", MasterCautionReset);
+DcsBios::PotentiometerEWMA<5, 128, 5> ufcBrt("UFC_BRT", A0);
 
 //Create the keypad Matrix for button inputs
 const byte ROWS = 8; // eight rows
@@ -36,11 +39,11 @@ char keys[ROWS][COLS] = {
 };
 
 // Connect keypad to these Arduino pins.
-byte rowPins[ROWS] = { 37, 36, 35, 34, 33, 32, 31, 30 };
-byte colPins[COLS] = { 22, 23, 24, 25, 26, 27, 28, 29 }; 
+//byte rowPins[ROWS] = { 37, 36, 35, 34, 33, 32, 31, 30 };
+//byte colPins[COLS] = { 22, 23, 24, 25, 26, 27, 28, 29 }; 
 
 // Create the Keypad
-Keypad kpd = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
+//Keypad kpd = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
 
 void setup() {
   DcsBios::setup(); 
@@ -48,9 +51,9 @@ void setup() {
 
 void loop() {
   DcsBios::loop();
-  keypad();
+  //keypad();
 }
-
+/*
 void keypad(){
   char key = kpd.getKey();
   if(key)  // Check for a valid key.
@@ -69,3 +72,4 @@ void keypad(){
     }
   }
  }
+ */
