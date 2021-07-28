@@ -14,7 +14,9 @@ int rows []={37, 36, 35, 34, 33, 32, 31, 30}; //Array of digital pins used as ro
 int UFCBrt = 0;
 int UFCBrtPWM = 0;
 const char True[] = "1";
-const char False[] = "0"; 
+const char False[] = "0";
+const uint8_t addr = 0x70; // HT16K33 default address
+uint16_t displayBuffer[8];
 
 #define NOP __asm__ __volatile__ ("nop\n\t")
 
@@ -43,6 +45,7 @@ const char False[] = "0";
 
 //Includes
 #include "DcsBios.h"
+#include <Wire.h>
 
 //DCS Bios Register
 //Switch2Pos
@@ -114,6 +117,24 @@ void setup() {
 
   NOP; // Delay 1 clock cycle for synchronization
 
+
+  //Setup Selection Display (16 Segment Displays)
+  Wire.begin();
+ 
+  Wire.beginTransmission(addr);
+  Wire.write(0x20 | 1); // turn on oscillator
+  Wire.endTransmission();
+ 
+  setBrightness(0);
+  blink(0);
+  clear();
+
+  displayBuffer[0] = lookup('8');
+  displayBuffer[1] = lookup('9');
+  displayBuffer[2] = lookup(' ');
+  displayBuffer[3] = lookup(' ');
+  displayBuffer[3] = displayBuffer[3] + 0b0100000000000000;
+  show();
 }
 
 void loop() {
@@ -349,4 +370,167 @@ void buttonPress (unsigned int button, const char *value)
       default:
       break;
     }
+}
+
+
+//Functions for 16 Segment Displays using HT16K33
+
+int lookup(char chr){
+   switch (chr)
+   {
+    case 'A':
+    return 0b0000000011110111;
+    break;
+    case 'B':
+    return 0b0001001010001111;
+    break;
+    case 'C':
+    return 0b0000000000111001;
+    break;
+    case 'D':
+    return 0b0001001000001111;
+    break;
+    case 'E':
+    return 0b0000000011111001;
+    break;
+    case 'F':
+    return 0b0000000011110001;
+    break;
+    case 'G':
+    return 0b0000000010111101;
+    break;
+    case 'H':
+    return 0b0000000011110110;
+    break;
+    case 'I':
+    return 0b0001001000001001;
+    break;
+    case 'J':
+    return 0b0000000000011110;
+    break;
+    case 'K':
+    return 0b0010010001110000;
+    break;
+    case 'L':
+    return 0b0000000000111000;
+    break;
+    case 'M':
+    return 0b0000010100110110;
+    break;
+    case 'N':
+    return 0b0010000100110110;
+    break;
+    case 'O':
+    return 0b0000000000111111;
+    break;
+    case 'P':
+    return 0b0000000011110011;
+    break;
+    case 'Q':
+    return 0b0010000000111111;
+    break;
+    case 'R':
+    return 0b0010000011110011;
+    break;
+    case 'S':
+    return 0b0000000011101101;
+    break;
+    case 'T':
+    return 0b0001001000000001;
+    break;
+    case 'U':
+    return 0b0000000000111110;
+    break;
+    case 'V':
+    return 0b0000110000110000;
+    break;
+    case 'W':
+    return 0b0010100000110110;
+    break;
+    case 'X':
+    return 0b0010110100000000;
+    break;
+    case 'Y':
+    return 0b0000000011101110;
+    break;
+    case 'Z':
+    return 0b0000110000001001;
+    break;
+    case '0':
+    return 0b0000110000111111;
+    break;
+    case '1':
+    return 0b0000010000000110;
+    break;
+    case '2':
+    return 0b0000000011011011;
+    break;
+    case '3':
+    return 0b0000000010001111;
+    break;
+    case '4':
+    return 0b0000000011100110;
+    break;
+    case '5':
+    return 0b0010000001101001;
+    break;
+    case '6':
+    return 0b0000000011111101;
+    break;
+    case '7':
+    return 0b0000000000000111;
+    break;
+    case '8':
+    return 0b0000000011111111;
+    break;
+    case '9':
+    return 0b0000000011101111;
+    break;
+    default:
+    return 0x0000; 
+    break;
+   }
+  }
+ 
+void show(){
+  Wire.beginTransmission(addr);
+  Wire.write(0x00); // start at address 0x0
+ 
+  for (int i = 0; i < 8; i++) {
+    Wire.write(displayBuffer[i] & 0xFF); 
+    Wire.write(displayBuffer[i] >> 8);    
+  }
+  Wire.endTransmission();  
+}
+ 
+void clear(){
+  for(int i = 0; i < 8; i++){
+    displayBuffer[i] = 0;
+  }
+}
+ 
+void setBrightness(uint8_t b){
+  if(b > 15) return;
+ 
+  Wire.beginTransmission(addr);
+  Wire.write(0xE0 | b); // Dimming command
+  Wire.endTransmission();
+}
+ 
+void blank(){
+  static boolean blankOn;  
+ 
+  Wire.beginTransmission(addr);
+  Wire.write(0x80 | blankOn); // Blanking / blinking command
+  Wire.endTransmission();
+ 
+  blankOn = !blankOn;
+}
+ 
+void blink(uint8_t b){
+  if(b > 3) return;
+ 
+  Wire.beginTransmission(addr);
+  Wire.write(0x80 | b << 1 | 1); // Blinking / blanking command
+  Wire.endTransmission();
 }
