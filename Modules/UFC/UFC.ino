@@ -120,20 +120,13 @@ void setup() {
 
   //Setup Selection Display (16 Segment Displays)
   Wire.begin();
- 
   Wire.beginTransmission(addr);
   Wire.write(0x20 | 1); // turn on oscillator
-  Wire.endTransmission();
- 
+  Wire.endTransmission(); 
   setBrightness(0);
   blink(0);
   clear();
-
-  displayBuffer[0] = lookup('8');
-  displayBuffer[1] = lookup('9');
-  displayBuffer[2] = lookup(' ');
-  displayBuffer[3] = lookup(' ');
-  displayBuffer[3] = displayBuffer[3] + 0b0100000000000000;
+  
   show();
 }
 
