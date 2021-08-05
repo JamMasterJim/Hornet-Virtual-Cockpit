@@ -11,12 +11,19 @@
 //Variables
 int columns []={62, 63, 64 ,65 ,66, 67, 68, 69}; //Array of digital pins used as columns for the digital matrix Port K
 int rows []={37, 36, 35, 34, 33, 32, 31, 30}; //Array of digital pins used as rows for the digital matrix
-int UFCBrt = 0;
-int UFCBrtPWM = 0;
 const char True[] = "1";
 const char False[] = "0";
-const uint8_t addr = 0x70; // HT16K33 default address
-uint16_t displayBuffer[8];
+uint16_t OptDisplay1Buf[8];
+uint16_t OptDisplay2Buf[8];
+uint16_t OptDisplay3Buf[8];
+uint16_t OptDisplay4Buf[8];
+uint16_t OptDisplay5Buf[8];
+const uint8_t OptDisplay1Addr = 0x70;
+const uint8_t OptDisplay2Addr = 0x71;
+const uint8_t OptDisplay3Addr = 0x72;
+const uint8_t OptDisplay4Addr = 0x73;
+const uint8_t OptDisplay5Addr = 0x74;
+
 
 #define NOP __asm__ __volatile__ ("nop\n\t")
 
@@ -64,11 +71,190 @@ DcsBios::RotaryEncoder ufcComm2ChannelSelect("UFC_COMM2_CHANNEL_SELECT", "DEC", 
 //LED
 
 //IntegerBuffer
-void onUfcBrtChange(unsigned int newValue) {
-    UFCBrt = newValue;
+void onUfcBrtChange(unsigned int UFCBrt) {
+    int OptionDisBrt = 0;
+    OptionDisBrt = map(UFCBrt, 0, 65535, 0, 15);
+    setBrightness(OptDisplay1Addr, OptionDisBrt);
+    setBrightness(OptDisplay2Addr, OptionDisBrt);
+    setBrightness(OptDisplay3Addr, OptionDisBrt);
+    setBrightness(OptDisplay4Addr, OptionDisBrt);
+    setBrightness(OptDisplay5Addr, OptionDisBrt);
 }
 DcsBios::IntegerBuffer ufcBrtBuffer(0x741e, 0xffff, 0, onUfcBrtChange);
 
+
+//Option Cueing
+void onUfcOptionCueing1Change(char* OptionCue1) {
+  
+  switch(OptionCue1[0])
+  {
+    case ':':
+      for (int i = 0; i <=3; i++)
+        {
+          OptDisplay1Buf[i] = OptDisplay1Buf[i] + 0b0100000000000000;
+        }      
+    break;    
+    default:
+      for (int i = 0; i <=3; i++)
+        {
+          OptDisplay1Buf[i] = OptDisplay1Buf[i] & 0b0011111111111111;
+        }  
+    break;
+  }
+  show(OptDisplay1Addr);
+}
+DcsBios::StringBuffer<1> ufcOptionCueing1Buffer(0x7428, onUfcOptionCueing1Change);
+
+void onUfcOptionCueing2Change(char* OptionCue2) {
+
+  switch(OptionCue2[0])
+  {
+    case ':':
+      for (int i = 0; i <=3; i++)
+        {
+          OptDisplay2Buf[i] = OptDisplay2Buf[i] + 0b0100000000000000;
+        }       
+    break;    
+    default:
+      for (int i = 0; i <=3; i++)
+        {
+          OptDisplay2Buf[i] = OptDisplay2Buf[i] & 0b0011111111111111;
+        }  
+    break;
+  }
+  show(OptDisplay2Addr);
+}
+DcsBios::StringBuffer<1> ufcOptionCueing2Buffer(0x742a, onUfcOptionCueing2Change);
+
+void onUfcOptionCueing3Change(char* OptionCue3) {
+
+  switch(OptionCue3[0])
+  {
+    case ':':
+      for (int i = 0; i <=3; i++)
+        {
+          OptDisplay3Buf[i] = OptDisplay3Buf[i] + 0b0100000000000000;
+        }  
+    break;    
+    default:
+      for (int i = 0; i <=3; i++)
+        {
+          OptDisplay3Buf[i] = OptDisplay3Buf[i] & 0b0011111111111111;
+        }  
+    break;
+  }
+  show(OptDisplay3Addr);
+}
+DcsBios::StringBuffer<1> ufcOptionCueing3Buffer(0x742c, onUfcOptionCueing3Change);
+
+void onUfcOptionCueing4Change(char* OptionCue4) {
+
+  switch(OptionCue4[0])
+  {
+    case ':':
+      for (int i = 0; i <=3; i++)
+        {
+          OptDisplay4Buf[i] = OptDisplay4Buf[i] + 0b0100000000000000;
+        }  
+    break;    
+    default:
+      for (int i = 0; i <=3; i++)
+        {
+          OptDisplay4Buf[i] = OptDisplay4Buf[i] & 0b0011111111111111;
+        }  
+    break;
+  }
+  show(OptDisplay4Addr);
+}
+DcsBios::StringBuffer<1> ufcOptionCueing4Buffer(0x742e, onUfcOptionCueing4Change);
+
+void onUfcOptionCueing5Change(char* OptionCue5) {
+
+  switch(OptionCue5[0])
+  {
+    case ':':
+      for (int i = 0; i <=3; i++)
+        {
+          OptDisplay5Buf[i] = OptDisplay5Buf[i] + 0b0100000000000000;
+        }  
+    break;    
+    default:
+      for (int i = 0; i <=3; i++)
+        {
+          OptDisplay5Buf[i] = OptDisplay5Buf[i] & 0b0011111111111111;
+        }  
+    break;
+  }
+  show(OptDisplay5Addr);
+}
+DcsBios::StringBuffer<1> ufcOptionCueing5Buffer(0x7430, onUfcOptionCueing5Change);
+
+
+//Option Display
+void onUfcOptionDisplay1Change(char* Optiondisplay1) {
+
+    int cue = 0;
+    //clear(OptDisplay1Addr);
+    for (int i = 0; i < strlen(Optiondisplay1); i++)
+      {
+        cue = OptDisplay1Buf[4-strlen(Optiondisplay1) + i] & 0b0100000000000000;
+        OptDisplay1Buf[4-strlen(Optiondisplay1) + i] = lookup(Optiondisplay1[i]) + cue;
+      }  
+    show(OptDisplay1Addr);
+}
+DcsBios::StringBuffer<4> ufcOptionDisplay1Buffer(0x7432, onUfcOptionDisplay1Change);
+
+void onUfcOptionDisplay2Change(char* Optiondisplay2) {
+
+    int cue = 0;
+    //clear(OptDisplay2Addr);
+    for (int i = 0; i < strlen(Optiondisplay2); i++)
+      {
+        cue = OptDisplay2Buf[4-strlen(Optiondisplay2) + i] & 0b0100000000000000;
+        OptDisplay2Buf[4-strlen(Optiondisplay2) + i] = lookup(Optiondisplay2[i]) + cue;
+      }  
+    show(OptDisplay2Addr);
+}
+DcsBios::StringBuffer<4> ufcOptionDisplay2Buffer(0x7436, onUfcOptionDisplay2Change);
+
+void onUfcOptionDisplay3Change(char* Optiondisplay3) {
+
+    int cue = 0;
+    //clear(OptDisplay3Addr);
+    for (int i = 0; i < strlen(Optiondisplay3); i++)
+      {
+        cue = OptDisplay3Buf[4-strlen(Optiondisplay3) + i] & 0b0100000000000000;
+        OptDisplay3Buf[4-strlen(Optiondisplay3) + i] = lookup(Optiondisplay3[i]) + cue;
+      }  
+    show(OptDisplay3Addr);
+}
+DcsBios::StringBuffer<4> ufcOptionDisplay3Buffer(0x743a, onUfcOptionDisplay3Change);
+
+void onUfcOptionDisplay4Change(char* Optiondisplay4) {
+
+    int cue = 0;
+    //clear(OptDisplay4Addr);
+    for (int i = 0; i < strlen(Optiondisplay4); i++)
+      {
+        cue = OptDisplay4Buf[4-strlen(Optiondisplay4) + i] & 0b0100000000000000;
+        OptDisplay4Buf[4-strlen(Optiondisplay4) + i] = lookup(Optiondisplay4[i]) + cue;
+      }  
+    show(OptDisplay4Addr);
+}
+DcsBios::StringBuffer<4> ufcOptionDisplay4Buffer(0x743e, onUfcOptionDisplay4Change);
+
+void onUfcOptionDisplay5Change(char* Optiondisplay5) {
+
+    int cue = 0;
+    //clear(OptDisplay5Addr);
+    for (int i = 0; i < strlen(Optiondisplay5); i++)
+      {
+        cue = OptDisplay5Buf[4-strlen(Optiondisplay5) + i] & 0b0100000000000000;
+        OptDisplay5Buf[4-strlen(Optiondisplay5) + i] = lookup(Optiondisplay5[i]) + cue;
+      }  
+    show(OptDisplay5Addr);
+}
+DcsBios::StringBuffer<4> ufcOptionDisplay5Buffer(0x7442, onUfcOptionDisplay5Change);
 
 
 void setup() {
@@ -113,27 +299,36 @@ void setup() {
   PCICR  = B00000100;      //Bit0 = 1 -> "PCIE0" enabeled, Bit1 = 0 -> "PCIE1" disabeled, Bit2 = 1 -> "PCIE2" enabeled
   PCMSK0 = B00000000;      //Nothin will trigger Interupt
   PCMSK1 = B00000000;      //Nothin will trigger Interupt
-  PCMSK2 = B11111111;      //Nothin will trigger Interupt
+  PCMSK2 = B11111111;      
 
   NOP; // Delay 1 clock cycle for synchronization
 
-
   //Setup Selection Display (16 Segment Displays)
+  for (int i = 0; i < 5; i++)
+  {
   Wire.begin();
-  Wire.beginTransmission(addr);
+  Wire.beginTransmission(0x70+i);
   Wire.write(0x20 | 1); // turn on oscillator
-  Wire.endTransmission(); 
-  setBrightness(0);
-  blink(0);
-  clear();
+  Wire.endTransmission();
+  setBrightness(0x70+i, 15);
+  blink(0x70+i, 0);
+  }
   
-  show();
+  clear(OptDisplay1Addr);
+  show(OptDisplay1Addr);
+  clear(OptDisplay2Addr);
+  show(OptDisplay2Addr);
+  clear(OptDisplay3Addr);
+  show(OptDisplay3Addr);
+  clear(OptDisplay4Addr);
+  show(OptDisplay4Addr);
+  clear(OptDisplay5Addr);
+  show(OptDisplay5Addr);  
 }
 
 void loop() {
   DcsBios::loop();
   //UFCBrtPWM = map(UFCBrt, 0, 65535, 0, 255);
-  //analogWrite(UFC_BRT_PWM, UFCBrtPWM);
 }
 
 //Interrupt Services
@@ -479,30 +674,105 @@ int lookup(char chr){
     case '9':
     return 0b0000000011101111;
     break;
+    case '/':
+    return 0b0000110000000000;
+    break;
+    case '-':
+    return 0b0000000011000000;
+    break;
     default:
     return 0x0000; 
     break;
    }
   }
  
-void show(){
-  Wire.beginTransmission(addr);
+void show(uint8_t DisplayAddr){
+  Wire.beginTransmission(DisplayAddr);
   Wire.write(0x00); // start at address 0x0
  
-  for (int i = 0; i < 8; i++) {
-    Wire.write(displayBuffer[i] & 0xFF); 
-    Wire.write(displayBuffer[i] >> 8);    
+  switch(DisplayAddr)
+  {
+    case OptDisplay1Addr:
+      for (int i = 0; i < 8; i++) 
+      {
+        Wire.write(OptDisplay1Buf[i] & 0xFF); 
+        Wire.write(OptDisplay1Buf[i] >> 8);    
+      } 
+    break;
+    case OptDisplay2Addr:
+      for (int i = 0; i < 8; i++) 
+      {
+        Wire.write(OptDisplay2Buf[i] & 0xFF); 
+        Wire.write(OptDisplay2Buf[i] >> 8);    
+      }
+    break;
+    case OptDisplay3Addr:
+      for (int i = 0; i < 8; i++) 
+      {
+        Wire.write(OptDisplay3Buf[i] & 0xFF); 
+        Wire.write(OptDisplay3Buf[i] >> 8);    
+      }
+    break;
+    case OptDisplay4Addr:
+      for (int i = 0; i < 8; i++) 
+      {
+        Wire.write(OptDisplay4Buf[i] & 0xFF); 
+        Wire.write(OptDisplay4Buf[i] >> 8);    
+      }
+    break;
+    case OptDisplay5Addr:
+      for (int i = 0; i < 8; i++) 
+      {
+        Wire.write(OptDisplay5Buf[i] & 0xFF); 
+        Wire.write(OptDisplay5Buf[i] >> 8);    
+      }
+    break; 
+    default:
+    break;
   }
-  Wire.endTransmission();  
+  Wire.endTransmission(); 
 }
  
-void clear(){
-  for(int i = 0; i < 8; i++){
-    displayBuffer[i] = 0;
+void clear(uint8_t DisplayAddr){
+
+  switch(DisplayAddr)
+  {
+    case OptDisplay1Addr:
+      for(int i = 0; i < 8; i++)
+      {
+        OptDisplay1Buf[i] = 0;
+      }
+    break;
+    case OptDisplay2Addr:
+      for(int i = 0; i < 8; i++)
+      {
+        OptDisplay2Buf[i] = 0;
+      }
+    break;
+    case OptDisplay3Addr:
+      for(int i = 0; i < 8; i++)
+      {
+        OptDisplay3Buf[i] = 0;
+      }
+    break;
+    case OptDisplay4Addr:
+      for(int i = 0; i < 8; i++)
+      {
+        OptDisplay4Buf[i] = 0;
+      }
+    break;
+    case OptDisplay5Addr:
+      for(int i = 0; i < 8; i++)
+      {
+        OptDisplay5Buf[i] = 0;
+      }
+    break; 
+    default:
+    break;
   }
 }
  
-void setBrightness(uint8_t b){
+void setBrightness(uint8_t addr, uint8_t b){
   if(b > 15) return;
  
   Wire.beginTransmission(addr);
@@ -510,7 +780,7 @@ void setBrightness(uint8_t b){
   Wire.endTransmission();
 }
  
-void blank(){
+void blank(uint8_t addr){
   static boolean blankOn;  
  
   Wire.beginTransmission(addr);
@@ -520,7 +790,7 @@ void blank(){
   blankOn = !blankOn;
 }
  
-void blink(uint8_t b){
+void blink(uint8_t addr, uint8_t b){
   if(b > 3) return;
  
   Wire.beginTransmission(addr);
